@@ -40,61 +40,6 @@ The “MLA” (Multi-Level Attention) repository implements an evidence-based fa
 #!/usr/bin/env bash
 set -e  # Exit on error
 
-# 1. Clone the repo
-git clone https://github.com/nii-yamagishilab/mla.git
-cd mla
 
-# 2. Print commit hash
-echo "Running commit:" $(git rev-parse --short HEAD)
-
-# 3. Create and activate conda environment
-echo "Creating Conda environment 'mla-env' (Python 3.7)"
-conda create -n mla-env python=3.7 -y
-# Activate it
-echo "Activating conda env 'mla-env'"
-# The activation command depends on shell; here’s for bash:
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate mla-env
-
-# 4. Install dependencies
-echo "Installing dependencies..."
-pip install -r requirements.txt
-
-# 5. Sanity check, show PyTorch version and whether CUDA is available
-echo "PyTorch version and CUDA available:"
-python - << 'PYCODE'
-import torch
-print("torch.__version__:", torch.__version__)
-print("CUDA available:", torch.cuda.is_available())
-PYCODE
-
-# 6. Run a quick help check to ensure scripts load
-echo "Testing script help screens..."
-for script in preprocess_claim_verification.py preprocess_sentence_selection.py train.py predict.py eval_fever.py; do
-  echo "  -> $script --help"
-  python "$script" --help >/dev/null
-done
-
-# 7. Run toy prediction on sample claims
-echo "Running toy end-to-end (preprocess + predict)..."
-mkdir -p runs/toy_claims
-printf "id\tclaim\n1\tThe Eiffel Tower is in Paris.\n2\tThe Sun rises in the west.\n" > runs/toy_claims/toy.tsv
-
-python preprocess_claim_verification.py \
-  --input_file runs/toy_claims/toy.tsv \
-  --output_dir runs/toy_claims/pre
-
-python predict.py \
-  --data_dir runs/toy_claims/pre \
-  --output_dir runs/toy_claims/pred \
-  --model_name_or_path bert-base-uncased \
-  --max_seq_length 128 \
-  --per_device_eval_batch_size 8
-
-# 8. List prediction outputs
-echo "Prediction outputs:"
-ls -R runs/toy_claims/pred
-
-echo "Finished successfully. Environment: mla-env"
 
 <img width="2560" height="1440" alt="Screenshot (148)" src="https://github.com/user-attachments/assets/28313afe-674c-45a4-8a32-b009b884e438" />
